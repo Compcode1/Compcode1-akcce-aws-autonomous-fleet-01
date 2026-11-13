@@ -39,3 +39,15 @@
 ### PCH-10: GitHub Hardened Node-ID OIDC `sub` Claim Binding (`owner@owner_id/repo@repo_id`)
 - **Paired Lesson:** DPL-10 / SRL-08 | **Date:** 2026-11-13
 - **Patch:** Updated Gate 2 `aws_iam_policy_document.github_oidc_assume_role` `sub` condition to `repo:${var.github_owner}@${var.github_owner_id}/${var.github_repo}@${var.github_repo_id}:ref:refs/heads/${var.github_branch}` matching CloudTrail `WebIdentityUser` telemetry.
+
+### PCH-11: CloudTrail Buffer Overflow & Secrets Manager EventSource Indexing
+- **Paired Lesson:** DPL-11 | **Date:** 2026-11-13
+- **Patch:** Project compact fields (`EventId,EventTime,EventName,Username`) via `--query` to prevent Mintty scrollback truncation, and query Secrets Manager telemetry via `AttributeKey=EventSource,AttributeValue=secretsmanager.amazonaws.com`.
+
+### PCH-12: Single-Viewport `--output text` Formatting (`<= 15` Vertical Lines)
+- **Paired Lesson:** DPL-12 | **Date:** 2026-11-13
+- **Patch:** Replace multi-line `--output json` (`58+` lines) with single-line `--output text` (`<= 15` lines) to prevent 24-row Mintty viewport truncation and chat context bloat.
+
+### PCH-13: Context-Compression Tether Failure & Pre-Patch Safety Valve
+- **Paired Lesson:** DPL-13 / SRL-09 | **Date:** 2026-11-13
+- **Patch:** Codified `HARNESS-RULE-09` enforcing a 4-point Pre-Patch Tether Check (Context-Loss Halt over header fabrication, frozen Progress %, `PCH-XX`-bound `1/4-4/4` counter, disk-first dual-ledger lock) plus an on-disk `.harness_heartbeat` echoed at the end of every v2.0 block.

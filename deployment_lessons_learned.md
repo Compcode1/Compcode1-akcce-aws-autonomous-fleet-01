@@ -37,3 +37,18 @@
 - **Symptom:** `AssumeRoleWithWebIdentity` returned `AccessDenied` in Run `43512129647` (`EventId: 2778200d-22c8-47e9-9554-500e79eee365`).
 - **Root Cause:** Account `Compcode1` enforces hardened OIDC subject claims (`repo:Compcode1@171821203/Compcode1-akcce-aws-autonomous-fleet-01@1457038661:ref:refs/heads/main`), rejecting legacy slug-only `sub` strings.
 - **Deterministic Fix:** Bind Gate 2 `token.actions.githubusercontent.com:sub` directly to `${var.github_owner}@${var.github_owner_id}/${var.github_repo}@${var.github_repo_id}`.
+
+### DPL-11: CloudTrail Raw JSON Scrollback Truncation & Federated Username Indexing
+- **Date:** 2026-11-13
+- **Symptom:** Raw `CloudTrailEvent` JSON pushed `[1/3]` and `[2/3]` off the Mintty scrollback window, and `AttributeKey=Username` returned `Events: []` for Secrets Manager calls.
+- **Deterministic Fix:** Enforce JMESPath `--query` field projection on all CloudTrail CLI lookups and filter vault events by `EventSource=secretsmanager.amazonaws.com`.
+
+### DPL-12: Multi-Line JSON Exceeding 24-Row Mintty Viewport & Context Budget
+- **Date:** 2026-11-13
+- **Symptom:** Multi-line `--output json` expanded 7 CloudTrail events to ~58 vertical lines, truncating viewport copy-paste and accelerating LLM context compression.
+- **Deterministic Fix:** Enforce `--output text` (`<= 15` lines) for all terminal readbacks.
+
+### DPL-13: LLM Context-Window Compression Causing Silent Harness Detachment
+- **Date:** 2026-11-13
+- **Symptom:** After large CLI/JSON pastes compressed the initial Phase 1 directive out of verbatim context, the AI fabricated approximate headers, lost `1/4-4/4` defect iteration tracking, and modified commands before logging patches.
+- **Deterministic Fix:** Enforce `HARNESS-RULE-09` (`SRL-09`): mandatory Pre-Patch Tether Safety Valve (immediate halt if verbatim harness rules/counters are compressed) backed by an on-disk `.harness_heartbeat` file echoed into every turn's terminal output in v2.0.
