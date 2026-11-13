@@ -21,3 +21,19 @@
 - **Date:** 2026-11-13
 - **Symptom:** `git push` of commit containing `.github/workflows/*.yml` failed with `HTTP 403` when token held only `Actions` and `Secrets` write scopes.
 - **Deterministic Fix:** Click `+ Add permissions` on Fine-Grained PAT to grant `Contents: Read and write`, `Workflows: Read and write`, and `Actions: Read and write`, and isolate Windows Git Credential Manager via `-c credential.helper=""`.
+
+### DPL-08: GitHub Actions Job Logs 302 Redirect Header Bleed
+- **Date:** 2026-11-13
+- **Symptom:** `curl -sSL -H "Authorization: Bearer ..."` returned empty output on `/actions/jobs/{job_id}/logs`.
+- **Deterministic Fix:** Capture `Location` header via `curl -sSI` with Bearer auth, then invoke `curl -sS "$LOG_URL"` without auth headers.
+
+### DPL-09: AI Harness Drift & Dual-Ledger Desynchronization
+- **Date:** 2026-11-13
+- **Symptom:** AI omitted progress percentage / iteration headers and updated `deployment_lessons_learned.md` without `patch_ledger.md`.
+- **Deterministic Fix:** Enforce `HARNESS-RULE-08` (`SRL-07`): mandatory 3-line telemetry header + synchronous `PCH-XX == DPL-XX` disk readback gate before advancing.
+
+### DPL-10: GitHub Account-Level Hardened OIDC `sub` Claim (`@owner_id` / `@repo_id`)
+- **Date:** 2026-11-13
+- **Symptom:** `AssumeRoleWithWebIdentity` returned `AccessDenied` in Run `43512129647` (`EventId: 2778200d-22c8-47e9-9554-500e79eee365`).
+- **Root Cause:** Account `Compcode1` enforces hardened OIDC subject claims (`repo:Compcode1@171821203/Compcode1-akcce-aws-autonomous-fleet-01@1457038661:ref:refs/heads/main`), rejecting legacy slug-only `sub` strings.
+- **Deterministic Fix:** Bind Gate 2 `token.actions.githubusercontent.com:sub` directly to `${var.github_owner}@${var.github_owner_id}/${var.github_repo}@${var.github_repo_id}`.
