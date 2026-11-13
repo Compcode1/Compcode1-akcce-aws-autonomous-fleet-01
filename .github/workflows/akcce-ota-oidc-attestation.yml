@@ -1,0 +1,51 @@
+name: AKCCE Zero-Trust AWS OIDC Attestation
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  oidc-ephemeral-sts-attestation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Gate 1 & 2 - Exchange GitHub OIDC JWT for Ephemeral AWS STS Role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::698250246230:role/akcce-autonomous-fleet-01-ota-oidc-role
+          aws-region: us-east-2
+          role-session-name: AKCCE-AutonomousFleet-OIDC-Proof
+          role-duration-seconds: 3600
+
+      - name: Verify Ephemeral STS Assumed-Role Identity
+        run: |
+          aws sts get-caller-identity --output json
+
+      - name: Gate 3 & 4 Positive Proof - Scoped OTA Signing Key Metadata Read
+        run: |
+          SECRET_JSON=$(aws secretsmanager get-secret-value \
+            --secret-id autonomy-prod/ota-firmware-signing-key \
+            --region us-east-2 \
+            --query SecretString \
+            --output text)
+          echo "$SECRET_JSON" | jq '{key_id, algorithm, fleet_domain, bound_repo_node_id, bound_owner_node_id, attestation_state}'
+
+      - name: Kill-Chain Counter-Test - Prove Lateral Vault Enumeration is Denied
+        run: |
+          set +e
+          OUT=$(aws secretsmanager list-secrets --region us-east-2 2>&1)
+          RC=$?
+          set -e
+          echo "$OUT"
+          if [ "$RC" -eq 0 ]; then
+            echo "SECURITY_FAILURE: Lateral ListSecrets unexpectedly succeeded!"
+            exit 1
+          fi
+          echo "AKCCE_COUNTER_TEST_PASSED: Lateral secretsmanager:ListSecrets deterministically blocked (exit $RC)."
